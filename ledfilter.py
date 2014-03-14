@@ -1,3 +1,8 @@
+'''
+converts a raw video into a binary feed, and also filters for specific colors.
+the sliders will let us calibrate the values to detect the ledbits 
+'''
+
 import cv2
 import cv2.cv as cv
 import sys

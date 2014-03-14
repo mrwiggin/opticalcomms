@@ -1,3 +1,7 @@
+'''
+this splits up a raw video feed into the designated led setup, 
+allowing each ledbit to be processed independently
+'''
 import numpy as np
 import cv2
 import cv2.cv as cv
@@ -114,7 +118,7 @@ while True:
 	#cv2.rectangle(frame,(384,0),(510,128),(0,255,0),3)
 	
 	offset = 600
-	cv2.imshow('red',red)
+	#cv2.imshow('red',red)
 	
 	
 	cv2.imshow('img',frame)
