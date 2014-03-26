@@ -33,15 +33,17 @@ fx, fy = 0, 0
 returnVal, uncropped = cam.read()
 
 while True:
-	returnVal,frame=cam.read()
+	returnVal,orig_frame=cam.read()
 	
-	height,width,d = frame.shape
+	height,width,d = orig_frame.shape
 	
-	crop_frame = frame[0:200, 0:200]
+	rows,cols,ch = orig_frame.shape
+	
+	crop_frame = orig_frame[0:200, 0:200]
 	
 	print height, width
 	
-	frame_hsv=cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+	frame_hsv=cv2.cvtColor(orig_frame, cv2.COLOR_BGR2HSV)
 	red_lower=np.array([h-range,s-range,v-range],np.uint8)  
 	red_upper=np.array([h+range,s+range,v+range],np.uint8)
 	
@@ -49,7 +51,7 @@ while True:
 	ret,binary_red = cv2.threshold(red,127,255,cv2.THRESH_BINARY)
 	
 	contours, hierarchy = cv2.findContours(binary_red,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-	cv2.drawContours(frame,contours,-1,(0,255,0),-1)
+	cv2.drawContours(orig_frame,contours,-1,(0,255,0),-1)
 	
 	#edges = cv2.Canny(binary_red,50,150,apertureSize = 3)
 	
@@ -70,26 +72,40 @@ while True:
 	
 	print bit_height, bit_width
 	
-	frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	pt1_y, pt1_x = 252, 345
+	pt2_y, pt2_x = 339, 349
+	pt3_y, pt3_x = 258, 393
+
+
+	# init points from input image
+	pts1 = np.float32([[pt1_y,pt1_x],[pt2_y,pt2_x],[pt3_y,pt3_x]])
+	#corresponding points in the output image
+	pts2 = np.float32([[50,50],[600,50],[50,400]])
+
+	M = cv2.getAffineTransform(pts1,pts2)
+
+	orig_frame = cv2.warpAffine(orig_frame,M,(width,height))
+	
+	frame_gray = cv2.cvtColor(orig_frame, cv2.COLOR_BGR2GRAY)
 	ret,binary_full = cv2.threshold(frame_gray,127,255,cv2.THRESH_BINARY)
 	#leftmost vertical line
-	cv2.line(frame,(bit_width,0),(bit_width,height),(0,0,0))
+	cv2.line(orig_frame,(bit_width,0),(bit_width,height),(0,0,0))
 	
 	#second vert line from left
-	cv2.line(frame,(bit_width*2,0),(bit_width*2,height),(0,0,0))
+	cv2.line(orig_frame,(bit_width*2,0),(bit_width*2,height),(0,0,0))
 	
-	cv2.line(frame,(bit_width*3,0),(bit_width*3,height),(0,0,0))
+	cv2.line(orig_frame,(bit_width*3,0),(bit_width*3,height),(0,0,0))
 	
-	cv2.line(frame,(0,bit_height),(width, bit_height),(0,0,0))
+	cv2.line(orig_frame,(0,bit_height),(width, bit_height),(0,0,0))
 	
-	cv2.line(frame,(0,bit_height*2),(width, bit_height*2),(0,0,0))
+	cv2.line(orig_frame,(0,bit_height*2),(width, bit_height*2),(0,0,0))
 	
-	cv2.line(frame,(0,bit_height*3),(width, bit_height*3),(0,0,0))
+	cv2.line(orig_frame,(0,bit_height*3),(width, bit_height*3),(0,0,0))
 	
 	#cv2.line(frame,(0,bit_height),(height, bit_width),(0,0,0))
 	
 	
-	cv2.putText(frame,'bit1',(10,500), cv2.FONT_HERSHEY_SIMPLEX, 4,(255,255,255),2)
+	cv2.putText(orig_frame,'bit1',(10,500), cv2.FONT_HERSHEY_SIMPLEX, 4,(255,255,255),2)
 	
 	
 	bit_0 = binary_full[0:bit_height, 0:bit_width]
@@ -110,7 +126,7 @@ while True:
 	#bit_0 = cv2.cvtColor(bit_0, cv2.COLOR_BGR2GRAY)
 	#ret,bit_0 = cv2.threshold(bit_0,127,255,cv2.THRESH_BINARY)
 	
-	img=cv2.GaussianBlur(frame, (5,5), 0)
+	img=cv2.GaussianBlur(orig_frame, (5,5), 0)
 	#img=cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) 
 	#img=cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) 
 	#img=cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
@@ -121,7 +137,7 @@ while True:
 	#cv2.imshow('red',red)
 	
 	
-	cv2.imshow('img',frame)
+	cv2.imshow('img',orig_frame)
 	cv2.imshow('bit0',bit_0)
 	cv.MoveWindow('bit0',offset,0)
 	cv2.imshow('bit1',bit_1)
